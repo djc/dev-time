@@ -1,0 +1,14 @@
+[Unit]
+Description=Dev Time server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/dev-time
+WorkingDirectory=/var/lib/dev-time
+DynamicUser=yes
+StateDirectory=dev-time
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

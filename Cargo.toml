@@ -1,6 +1,13 @@
 [package]
-name = "work-tracker"
+name = "dev-time"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+axum = "0.8"
+jiff = { version = "0.2", features = ["serde"] }
+rusqlite = { version = "0.39", features = ["bundled", "jiff"] }
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
