@@ -1,0 +1,41 @@
+{
+  "name": "dev-time",
+  "displayName": "Dev Time",
+  "description": "Tracks active workspace time and syncs to a remote server",
+  "version": "0.1.0",
+  "publisher": "djc",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "devTime.sync",
+        "title": "Dev Time: Sync Now"
+      },
+      {
+        "command": "devTime.showRuns",
+        "title": "Dev Time: Show Runs"
+      }
+    ],
+    "configuration": {
+      "title": "Dev Time",
+      "properties": {
+        "devTime.remoteUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Remote URL to sync work tracking runs to (HTTP POST)"
+        },
+        "devTime.hostname": {
+          "type": "string",
+          "default": "",
+          "description": "Hostname to include when uploading runs to the remote server"
+        }
+      }
+    }
+  }
+}
