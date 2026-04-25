@@ -6,11 +6,9 @@ use axum::extract::State;
 use axum::http::StatusCode;
 use axum::routing::post;
 use axum::{Json, Router};
-use jiff::Timestamp;
-use rusqlite::Connection;
-use serde::Deserialize;
+use dev_time::{Store, SyncRequest};
 use tokio::net::TcpListener;
-use tracing::info;
+use tracing::{error, info};
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -40,10 +38,10 @@ async fn main() -> ExitCode {
         }
     }
 
-    let db = Connection::open("dev-time.db").expect("failed to open database");
-    init_db(&db);
+    let state = Arc::new(AppState {
+        store: Mutex::new(Store::open().expect("failed to open store")),
+    });
 
-    let state = Arc::new(AppState { db: Mutex::new(db) });
     let app = Router::new()
         .route("/runs", post(ingest_runs))
         .with_state(state);
@@ -60,49 +58,16 @@ async fn ingest_runs(
     Json(req): Json<SyncRequest>,
 ) -> Result<StatusCode, StatusCode> {
     info!(host = %req.host, source = %req.source, runs = req.runs.len(), "ingesting runs");
-    let mut db = state.db.lock().unwrap();
-    let tx = db
-        .transaction()
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    for run in &req.runs {
-        tx.execute(
-            "INSERT INTO runs (host, source, context, start_time, end_time) VALUES (?1, ?2, ?3, ?4, ?5)",
-            (&req.host, &req.source, &run.context, &run.start_time, &run.end_time),
-        )
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let mut store = state.store.lock().unwrap();
+    match store.save(req) {
+        Ok(_) => Ok(StatusCode::NO_CONTENT),
+        Err(error) => {
+            error!(?error, "failed to save runs");
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
     }
-    tx.commit().map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    Ok(StatusCode::NO_CONTENT)
-}
-
-fn init_db(db: &Connection) {
-    db.execute_batch(
-        "CREATE TABLE IF NOT EXISTS runs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            host TEXT NOT NULL,
-            source TEXT NOT NULL,
-            context TEXT NOT NULL,
-            start_time TEXT NOT NULL,
-            end_time TEXT NOT NULL
-        );",
-    )
-    .expect("failed to initialize database");
 }
 
 struct AppState {
-    db: Mutex<Connection>,
-}
-
-#[derive(Deserialize)]
-struct SyncRequest {
-    host: String,
-    source: String,
-    runs: Vec<SourceRun>,
-}
-
-#[derive(Deserialize)]
-struct SourceRun {
-    context: String,
-    start_time: Timestamp,
-    end_time: Timestamp,
+    store: Mutex<Store>,
 }
