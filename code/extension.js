@@ -89,14 +89,17 @@ class State {
   }
 
   async syncRuns() {
+    console.log("dev-time: syncing runs...");
     const config = vscode.workspace.getConfiguration("devTime");
     const remoteUrl = config.get("remoteUrl");
     if (!remoteUrl) {
+      console.log("dev-time: remoteUrl not configured, skipping sync");
       return;
     }
 
     const unsynced = this._getUnsyncedRuns();
     if (unsynced.length === 0) {
+      console.log("dev-time: no unsynced runs, skipping sync");
       return;
     }
 
@@ -109,11 +112,13 @@ class State {
           end_time,
         })),
       };
+
       const response = await fetch(remoteUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+      console.log(`dev-time: sync response ${response.status}`);
 
       if (response.ok) {
         const lastId = unsynced[unsynced.length - 1].id;
