@@ -106,8 +106,9 @@ class State {
     try {
       const payload = {
         host: config.get("hostname") || "",
-        source: this.context,
-        runs: unsynced.map(({ start_time, end_time }) => ({
+        source: "code",
+        runs: unsynced.map(({ context, start_time, end_time }) => ({
+          context,
           start_time,
           end_time,
         })),
