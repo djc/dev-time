@@ -97,11 +97,11 @@ struct AppState {
 struct SyncRequest {
     host: String,
     source: String,
-    runs: Vec<Run>,
+    runs: Vec<SourceRun>,
 }
 
 #[derive(Deserialize)]
-struct Run {
+struct SourceRun {
     context: String,
     start_time: Timestamp,
     end_time: Timestamp,
