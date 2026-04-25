@@ -42,6 +42,39 @@ impl Store {
         tx.commit().context("failed to commit save transaction")?;
         Ok(())
     }
+
+    pub fn range(&self, start: Timestamp, end: Timestamp) -> anyhow::Result<Vec<Run>> {
+        let mut stmt = self
+            .db
+            .prepare(
+                "SELECT host, source, context, start_time, end_time FROM runs WHERE start_time >= ?1 AND end_time <= ?2",
+            )
+            .context("failed to prepare range query")?;
+
+        let runs = stmt
+            .query_map((&start, &end), |row| {
+                Ok(Run {
+                    host: row.get(0)?,
+                    source: row.get(1)?,
+                    context: row.get(2)?,
+                    start_time: row.get(3)?,
+                    end_time: row.get(4)?,
+                })
+            })
+            .context("failed to execute range query")?
+            .collect::<Result<_, _>>()
+            .context("failed to map range query results")?;
+
+        Ok(runs)
+    }
+}
+
+pub struct Run {
+    pub host: String,
+    pub source: String,
+    pub context: String,
+    pub start_time: Timestamp,
+    pub end_time: Timestamp,
 }
 
 #[derive(Deserialize)]
