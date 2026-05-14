@@ -4,10 +4,9 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/dev-time
-WorkingDirectory=/var/lib/dev-time
-DynamicUser=yes
-StateDirectory=dev-time
+User=djc
+WorkingDirectory=/home/djc/src/dev-time
+ExecStart=/home/djc/.cargo/bin/cargo run --release --bin server
 Restart=on-failure
 
 [Install]
