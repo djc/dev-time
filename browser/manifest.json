@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Dev Time",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Tracks time spent on URLs locally and syncs to a remote server hourly.",
   "permissions": ["tabs", "storage", "<all_urls>"],
   "background": {
@@ -10,5 +10,10 @@
   "options_ui": {
     "page": "options.html",
     "browser_style": true
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "dev-time@xavamedia.nl"
+    }
   }
 }
